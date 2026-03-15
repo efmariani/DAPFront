@@ -1,0 +1,73 @@
+GUÍA PARA EL BACKEND - DAP SERVICE S.R.L.
+=========================================
+
+Esta guía detalla los requisitos técnicos del frontend para la comunicación con el backend de la plataforma.
+
+1. ENDPOINTS REQUERIDOS
+-----------------------
+
+A. REGISTRO DE USUARIO (SIGNUP)
+   - Método: POST
+   - Endpoint: /api/auth/register (o similar)
+   - Cuerpo (JSON):
+     {
+       "nombre": "string",
+       "email": "string (validado)",
+       "password": "string (mín. 8 caracteres recommended)"
+     }
+   - Notas: 
+     * El frontend ya verifica que las contraseñas coincidan.
+     * El campo "signup_phone" (honeypot) NO debe ser enviado al backend, o si se envía, el backend debe descartar la solicitud si tiene valor (indicación de bot).
+
+B. INICIO DE SESIÓN (LOGIN)
+   - Método: POST
+   - Endpoint: /api/auth/login
+   - Cuerpo (JSON):
+     {
+       "email": "string",
+       "password": "string"
+     }
+   - Respuesta esperada: Token de sesión (JWT) y datos básicos del usuario.
+
+C. FORMULARIO DE CONTACTO/SERVICIO
+   - Método: POST
+   - Endpoint: /api/tickets/create (o similar)
+   - Cuerpo (JSON):
+     {
+       "nombre": "string",
+       "email": "string",
+       "telefono": "string",
+       "establecimiento": "string (opcional)",
+       "direccion": "string (opcional)",
+       "marca": "string (opcional)",
+       "modelo": "string (opcional)",
+       "n_serie": "string (opcional)",
+       "consulta": "string"
+     }
+   - Notas:
+     * El campo "opinion" (honeypot) NO debe ser enviado al backend, o si se envía, el backend debe descartar la solicitud si tiene valor (indicación de bot).
+
+2. SEGURIDAD Y VALIDACIÓN
+-------------------------
+
+- CORS: Habilitar para el dominio donde se aloje el frontend.
+- Rate Limiting: Implementar en los endpoints de auth para prevenir ataques de fuerza bruta.
+- Honeypot: Se agregó un campo invisible llamado "signup_phone" en el formulario de registro. Si este campo llega con contenido, es un bot.
+
+3. ESTADOS DE RESPUESTA
+-----------------------
+
+- 201 Created: Registro exitoso.
+- 200 OK: Login exitoso o mensaje enviado.
+- 400 Bad Request: Datos inválidos o faltantes.
+- 401 Unauthorized: Credenciales incorrectas.
+- 409 Conflict: El email ya está registrado.
+- 500 Internal Server Error: Error en el servidor.
+
+4. CONSIDERACIONES DE DISEÑO
+----------------------------
+
+- El frontend usa HSL/Variables CSS. Cualquier respuesta de error del backend (ej. "Email ya en uso") debe ser enviada como "message" en el JSON de respuesta para mostrarse en el modal.
+- La página 404.html ya está diseñada y lista para ser servida por el servidor web en caso de rutas inexistentes.
+
+DAP SERVICE S.R.L - 2026

@@ -81,6 +81,28 @@ h4,
     color: var(--white);
 }
 
+.btn-secondary {
+    background-color: var(--secondary);
+    color: var(--white);
+}
+
+.btn-secondary:hover {
+    background-color: #455a64;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(96, 125, 139, 0.3);
+}
+
+.btn-outline-cta {
+    background-color: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline-cta:hover {
+    background-color: var(--primary);
+    color: var(--white);
+}
+
 .btn-outline:hover {
     background-color: var(--white);
     color: var(--primary);
@@ -803,6 +825,116 @@ footer {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: var(--white);
+    margin: 10% auto;
+    padding: 40px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: var(--shadow-md);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.close-modal {
+    position: absolute;
+    right: 25px;
+    top: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.close-modal:hover {
+    color: var(--primary);
+}
+
+.modal h3 {
+    font-size: 2rem;
+    color: var(--primary-dark);
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.modal-footer-text {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.modal-footer-text a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    border-left: 4px solid #c62828;
+}
+
+/* 404 Page */
+.error-page {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--bg-light);
+}
+
+.error-container h1 {
+    font-size: 8rem;
+    color: var(--primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.error-container h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.error-container p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: var(--text-muted);
+}
+
+/* Responsive Nav adjust */
+@media (max-width: 992px) {
+    .nav-cta {
+        display: none;
     }
 }
 

@@ -42,7 +42,9 @@
                 </ul>
             </nav>
             <div class="nav-cta">
-                <a href="contacto.html" class="btn btn-primary">Solicitar Servicio</a>
+                <a href="#" class="btn btn-secondary" id="login-trigger">Iniciar Sesión</a>
+                <a href="#" class="btn btn-primary" id="signup-trigger">Crear Cuenta</a>
+                <a href="contacto.html" class="btn btn-outline-cta">Solicitar Servicio</a>
             </div>
             <div class="menu-toggle" id="mobile-menu">
                 <i class="fas fa-bars"></i>
@@ -151,6 +153,61 @@
         class="whatsapp-float" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
+
+    <!-- Auth Modals -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            
+            <!-- Login Form -->
+            <div id="login-container">
+                <h3>Iniciar Sesión</h3>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" required placeholder="********">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Ingresar</button>
+                    <p class="modal-footer-text">¿No tienes cuenta? <a href="#" id="go-to-signup">Regístrate</a></p>
+                </form>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-container" style="display: none;">
+                <h3>Crear Cuenta</h3>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-name">Nombre Completo</label>
+                        <input type="text" id="signup-name" required placeholder="Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required placeholder="tu@email.com">
+                    </div>
+                    <!-- Honeypot field (invisible to users) -->
+                    <div class="form-group" style="display:none !important;">
+                        <label for="signup-phone">Teléfono (No completar)</label>
+                        <input type="text" id="signup-phone" name="signup_phone" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Contraseña</label>
+                        <input type="password" id="signup-password" required placeholder="********">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Repetir Contraseña</label>
+                        <input type="password" id="signup-confirm-password" required placeholder="********">
+                    </div>
+                    <div id="signup-error" class="error-message" style="display: none;"></div>
+                    <button type="submit" class="btn btn-primary btn-full">Registrarse</button>
+                    <p class="modal-footer-text">¿Ya tienes cuenta? <a href="#" id="go-to-login">Inicia sesión</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Custom JS -->
     <script src="main.js"></script>
