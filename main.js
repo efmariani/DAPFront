@@ -1,6 +1,8 @@
 // ============================================================
 // CONFIG
 // ============================================================
+// Esta variable será reemplazada automáticamente en producción
+// por el script vercel-build.js usando la variable de entorno API_BASE en Vercel.
 const API_BASE = 'http://localhost:5000/api';
 
 document.addEventListener('DOMContentLoaded', () => {

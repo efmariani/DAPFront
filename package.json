@@ -1,0 +1,8 @@
+{
+  "name": "dap-front",
+  "version": "1.0.0",
+  "description": "Static front-end build script for Vercel",
+  "scripts": {
+    "build": "node vercel-build.js"
+  }
+}
