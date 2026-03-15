@@ -302,8 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         direccion: data.direccion,
                         marca: data.marca,
                         modelo: data.modelo,
-                        n_serie: data['n-serie'],
-                        consulta: data.consulta
+                        n_serie: data.n_serie,
+                        consulta: data.consulta,
+                        usuario_id: userData ? userData.id : null
                     })
                 });
 
