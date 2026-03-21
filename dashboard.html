@@ -713,12 +713,11 @@
                                 <option value="En Curso">En Curso</option>
                                 <option value="Resuelto">Resuelto</option>
                             </select>
-                            ${ROLE === 'Administrador' ? `
-                            <select id="preview-as-role" style="min-width:140px;">
+                            <select id="preview-as-role" style="min-width:140px; display:none;">
                                 <option value="Admin">Vista Admin</option>
                                 <option value="Tecnico">Previsualizar Técnico</option>
                                 <option value="Cliente">Previsualizar Cliente</option>
-                            </select>` : ''}
+                            </select>
                             <button class="btn btn-primary" id="btn-search-tickets"><i class="fas fa-filter"></i> Filtrar</button>
                         </div>
                     </div>
@@ -1205,8 +1204,22 @@
                 return;
             }
             const users = await resp.json();
+            
+            if (!resp.ok) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${users.message || 'No se pudieron cargar los usuarios'}</p></div>`;
+                document.getElementById('users-count').textContent = 'Error';
+                return;
+            }
+
+            if (!Array.isArray(users)) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No hay usuarios registrados o el formato es inválido.</p></div>';
+                document.getElementById('users-count').textContent = '0 usuarios';
+                return;
+            }
+
             currentUsers = users;
             document.getElementById('users-count').textContent = `${users.length} usuario${users.length !== 1 ? 's' : ''}`;
+            
             if (!users.length) {
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No hay usuarios registrados.</p></div>';
                 return;
@@ -1436,7 +1449,11 @@
             const q = document.getElementById('ticket-search-input').value.trim();
             const field = document.getElementById('ticket-search-field').value;
             const status = document.getElementById('ticket-filter-status').value;
-            const previewRole = document.getElementById('preview-as-role')?.value;
+
+            const previewAsRoleEl = document.getElementById('preview-as-role');
+            if (ROLE === 'Administrador') {
+                previewAsRoleEl.style.display = 'block';
+            }
 
             let url = `${API_BASE}/tickets`;
             if (q) {
@@ -1446,6 +1463,7 @@
             }
 
             // Preview mode for Admin: fetches tickets with simulated rules
+            const previewRole = previewAsRoleEl?.value;
             if (ROLE === 'Administrador' && previewRole && previewRole !== 'Admin') {
                 url += (url.includes('?') ? '&' : '?') + `preview_as=${previewRole}`;
                 document.getElementById('role-preview-banner').style.display = 'block';
