@@ -500,6 +500,74 @@
         .password-form label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
         .password-form input { width: 100%; }
 
+        /* Column visibility toggle classes */
+        .hidden-col { display: none !important; }
+
+        /* Full request viewer */
+        .full-request-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e1e8ed;
+        }
+        .full-request-item { margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .full-request-item strong { display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
+        .full-request-item p { font-size: 0.95rem; font-weight: 500; }
+
+        .btn-view-full { background: #e3f2fd; color: var(--primary); border: 1px solid #bbdefb; }
+        .btn-view-full:hover { background: var(--primary); color: white; }
+
+        /* Column Selector Button */
+        .col-toggle-btn {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid #ddd;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .col-toggle-btn:hover { background: #e2e8f0; color: var(--text-dark); }
+        .col-selector-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: white;
+            box-shadow: var(--shadow-md);
+            border-radius: 10px;
+            padding: 12px;
+            z-index: 1000;
+            min-width: 180px;
+            border: 1px solid #eee;
+        }
+        .col-selector-menu.show { display: block; }
+        .col-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .col-item input { width: 16px; height: 16px; cursor: pointer; }
+
+        /* Role Filter Preview Styles */
+        .role-preview-notice {
+            background: #fff8e1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border-left: 4px solid #f9a825;
+            font-size: 0.82rem;
+            margin-bottom: 16px;
+            display: none;
+        }
         /* Ticket detail row */
         .ticket-detail { font-size: 0.82rem; color: var(--text-muted); margin-top: 3px; }
 
@@ -620,6 +688,19 @@
                             <input type="text" id="ticket-search-input" placeholder="Buscar por cliente, serial, establecimiento..." style="width:100%; padding-left:36px;">
                         </div>
                         <div style="display:flex; gap:8px;">
+                            <div style="position:relative;">
+                                <div class="col-toggle-btn" id="btn-col-selector" title="Columnas">
+                                    <i class="fas fa-columns"></i>
+                                </div>
+                                <div class="col-selector-menu" id="col-selector-menu">
+                                    <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:8px; padding-left:4px;">VER COLUMNAS</p>
+                                    <label class="col-item"><input type="checkbox" checked data-col="0"> ID</label>
+                                    <label class="col-item"><input type="checkbox" checked data-col="1"> Cliente</label>
+                                    <label class="col-item"><input type="checkbox" checked data-col="2"> Info Equipo</label>
+                                    <label class="col-item"><input type="checkbox" checked data-col="3"> Estado</label>
+                                    <label class="col-item"><input type="checkbox" checked data-col="4"> Fecha</label>
+                                </div>
+                            </div>
                             <select id="ticket-search-field" style="min-width:150px;">
                                 <option value="">Cualquier campo</option>
                                 <option value="n_serie">N° Serie</option>
@@ -632,9 +713,20 @@
                                 <option value="En Curso">En Curso</option>
                                 <option value="Resuelto">Resuelto</option>
                             </select>
+                            ${ROLE === 'Administrador' ? `
+                            <select id="preview-as-role" style="min-width:140px;">
+                                <option value="Admin">Vista Admin</option>
+                                <option value="Tecnico">Previsualizar Técnico</option>
+                                <option value="Cliente">Previsualizar Cliente</option>
+                            </select>` : ''}
                             <button class="btn btn-primary" id="btn-search-tickets"><i class="fas fa-filter"></i> Filtrar</button>
                         </div>
                     </div>
+                </div>
+                
+                <div id="role-preview-banner" class="role-preview-notice">
+                    <i class="fas fa-info-circle"></i> <strong>Modo Previsualización:</strong> Mostrando tickets como los vería un <span id="preview-role-name"></span>. 
+                    <a href="#" style="color:var(--primary); font-weight:700; margin-left:8px;" onclick="resetPreviewMode()">Volver</a>
                 </div>
 
                 <div class="card-body" style="padding:0;">
@@ -832,6 +924,46 @@
         </div>
     </div>
 
+    <!-- ===== MODAL: Ver Solicitud Completa (Lectura) ===== -->
+    <div class="modal-overlay" id="modal-view-full">
+        <div class="modal-box" style="max-width:650px;">
+            <h3><i class="fas fa-ticket-alt" style="color:var(--primary);margin-right:8px"></i>Detalle Completo de Solicitud</h3>
+            <div id="full-ticket-content" class="full-request-box">
+                <!-- Data filled by JS -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="document.getElementById('modal-view-full').classList.remove('open')" style="background:#f5f5f5;color:var(--text-dark)">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Cambio Obligatorio de Contraseña (Admin Reset) ===== -->
+    <div class="modal-overlay" id="modal-force-password" style="background: rgba(13, 27, 42, 0.95);">
+        <div class="modal-box" style="max-width:480px;">
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="width:70px; height:70px; background:var(--primary-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 16px;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 style="margin-bottom:8px">Cambio de Contraseña Obligatorio</h3>
+                <p style="color:var(--text-muted); font-size:0.9rem;">Tu contraseña ha sido blanqueada por un administrador. <br>Debes establecer una nueva antes de continuar.</p>
+            </div>
+            <form id="force-password-form">
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" id="force-pwd" required minlength="8" placeholder="Mínimo 8 caracteres">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Contraseña</label>
+                    <input type="password" id="force-pwd-confirm" required minlength="8" placeholder="Repite la contraseña">
+                </div>
+                <div id="alert-modal-force" class="alert"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:12px; height:44px;">
+                    <i class="fas fa-save"></i> Actualizar y Acceder
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
     // ============================================================
     // CONFIG
@@ -979,17 +1111,18 @@
             statsHTML = `
                 <div class="stat-card blue"><div class="stat-icon"><i class="fas fa-users"></i></div><div><div class="stat-value" id="stat-users">—</div><div class="stat-label">Usuarios Registrados</div></div></div>
                 <div class="stat-card yellow"><div class="stat-icon"><i class="fas fa-ticket-alt"></i></div><div><div class="stat-value" id="stat-tickets">—</div><div class="stat-label">Tickets Totales</div></div></div>
+                <div class="stat-card accent"><div class="stat-icon" style="background:#e0f7fa;color:var(--accent)"><i class="fas fa-tools"></i></div><div><div class="stat-value" id="stat-progress">—</div><div class="stat-label">En Curso</div></div></div>
                 <div class="stat-card green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div><div class="stat-value" id="stat-resolved">—</div><div class="stat-label">Resueltos</div></div></div>
                 <div class="stat-card red"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pendientes</div></div></div>`;
         } else if (ROLE === 'Técnico') {
             statsHTML = `
                 <div class="stat-card blue"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><div><div class="stat-value" id="stat-assigned">—</div><div class="stat-label">Tickets Asignados</div></div></div>
-                <div class="stat-card yellow"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pendientes</div></div></div>
+                <div class="stat-card accent"><div class="stat-icon" style="background:#e0f7fa;color:var(--accent)"><i class="fas fa-tools"></i></div><div><div class="stat-value" id="stat-progress">—</div><div class="stat-label">En Curso</div></div></div>
                 <div class="stat-card green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div><div class="stat-value" id="stat-resolved">—</div><div class="stat-label">Resueltos</div></div></div>`;
         } else {
             statsHTML = `
                 <div class="stat-card blue"><div class="stat-icon"><i class="fas fa-ticket-alt"></i></div><div><div class="stat-value" id="stat-tickets">—</div><div class="stat-label">Mis Reclamos</div></div></div>
-                <div class="stat-card yellow"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pendientes</div></div></div>
+                <div class="stat-card accent"><div class="stat-icon" style="background:#e0f7fa;color:var(--accent)"><i class="fas fa-tools"></i></div><div><div class="stat-value" id="stat-progress">—</div><div class="stat-label">En Curso</div></div></div>
                 <div class="stat-card green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div><div class="stat-value" id="stat-resolved">—</div><div class="stat-label">Resueltos</div></div></div>`;
         }
         document.getElementById('overview-stats').innerHTML = statsHTML;
@@ -1000,25 +1133,25 @@
             if (resp.ok) {
                 const tickets = await resp.json();
                 const pending = tickets.filter(t => !t.estado || t.estado === 'Pendiente').length;
+                const progress = tickets.filter(t => t.estado === 'En Curso').length;
                 const resolved = tickets.filter(t => t.estado === 'Resuelto').length;
 
                 if (document.getElementById('stat-tickets')) document.getElementById('stat-tickets').textContent = tickets.length;
                 if (document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = pending;
+                if (document.getElementById('stat-progress')) document.getElementById('stat-progress').textContent = progress;
                 if (document.getElementById('stat-resolved')) document.getElementById('stat-resolved').textContent = resolved;
                 if (document.getElementById('stat-assigned')) document.getElementById('stat-assigned').textContent = tickets.length;
             }
-        } catch(e) { /* silently fail stats */ }
 
-        // Admin: also load user count
-        if (ROLE === 'Administrador') {
-            try {
-                const resp = await fetch(`${API_BASE}/users`, { headers: authHeaders() });
-                if (resp.ok) {
-                    const users = await resp.json();
-                    if (document.getElementById('stat-users')) document.getElementById('stat-users').textContent = users.length;
+            // If Admin, also load user count
+            if (ROLE === 'Administrador') {
+                const respUsers = await fetch(`${API_BASE}/users`, { headers: authHeaders() });
+                if (respUsers.ok) {
+                    const users = await respUsers.json();
+                    document.getElementById('stat-users').textContent = users.length;
                 }
-            } catch(e) {}
-        }
+            }
+        } catch(e) { /* silently fail stats */ }
     }
 
     function welcomeSub() {
@@ -1231,6 +1364,8 @@
     // ============================================================
     let selectedTicketId = null;
 
+    let previewModeRole = null;
+
     async function loadTickets() {
         const container = document.getElementById('tickets-table-container');
         container.innerHTML = '<div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Cargando tickets...</p></div>';
@@ -1248,12 +1383,22 @@
             const q = document.getElementById('ticket-search-input').value.trim();
             const field = document.getElementById('ticket-search-field').value;
             const status = document.getElementById('ticket-filter-status').value;
+            const previewRole = document.getElementById('preview-as-role')?.value;
 
             let url = `${API_BASE}/tickets`;
             if (q) {
                 url = `${API_BASE}/tickets/search?q=${encodeURIComponent(q)}${field ? `&field=${field}` : ''}`;
             } else if (status) {
                 url = `${API_BASE}/tickets?estado=${status}`;
+            }
+
+            // Preview mode for Admin: fetches tickets with simulated rules
+            if (ROLE === 'Administrador' && previewRole && previewRole !== 'Admin') {
+                url += (url.includes('?') ? '&' : '?') + `preview_as=${previewRole}`;
+                document.getElementById('role-preview-banner').style.display = 'block';
+                document.getElementById('preview-role-name').textContent = previewRole;
+            } else {
+                document.getElementById('role-preview-banner').style.display = 'none';
             }
 
             const resp = await fetch(url, { headers: authHeaders() });
@@ -1273,42 +1418,116 @@
 
             let rows = tickets.map(t => `
                 <tr>
-                    <td><strong>#${t.id}</strong></td>
-                    <td>
+                    <td class="col-0"><strong>#${t.id}</strong></td>
+                    <td class="col-1">
                         ${escapeHtml(t.nombre || '—')}<br>
                         <span class="ticket-detail">${escapeHtml(t.email || '')}</span>
                     </td>
-                    <td>
+                    <td class="col-2">
                         <span style="font-size:0.85rem">${escapeHtml(t.establecimiento || 'Part.')}</span><br>
                         <small style="color:var(--text-muted)">SN: ${escapeHtml(t.n_serie || '—')}</small>
                     </td>
-                    <td>${getStatusBadge(t.estado)}</td>
-                    <td>${escapeHtml(t.created_at ? new Date(t.created_at).toLocaleDateString('es-AR') : '—')}</td>
+                    <td class="col-3">${getStatusBadge(t.estado)}</td>
+                    <td class="col-4">${escapeHtml(t.created_at ? new Date(t.created_at).toLocaleDateString('es-AR') : '—')}</td>
                     <td>
                         <div class="actions-row">
+                            <button class="btn btn-sm btn-view-full" onclick="viewFullTicket(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Ver Solicitud Completa">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             ${canChangeStatus ? `
-                            <button class="btn btn-sm btn-primary" onclick="openTicketStatusModal(${t.id}, '${escapeHtml(t.estado || 'Pendiente')}')">
+                            <button class="btn btn-sm btn-primary" onclick="openTicketStatusModal(${t.id}, '${escapeHtml(t.estado || 'Pendiente')}')" title="Cambiar Estado">
                                 <i class="fas fa-exchange-alt"></i>
                             </button>` : ''}
                             ${isAdmin ? `
-                            <button class="btn btn-sm btn-warning" onclick="openTicketModal(${JSON.stringify(t).replace(/"/g, '&quot;')})">
+                            <button class="btn btn-sm btn-warning" onclick="openTicketModal(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteTicketAdmin(${t.id})">
+                            <button class="btn btn-sm btn-danger" onclick="deleteTicketAdmin(${t.id})" title="Eliminar">
                                 <i class="fas fa-trash"></i>
                             </button>` : ''}
                         </div>
                     </td>
                 </tr>`).join('');
             container.innerHTML = `
-                <table>
-                    <thead><tr><th>#</th><th>Cliente</th><th>Info Equipo</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                <table id="tickets-table">
+                    <thead><tr>
+                        <th class="col-0">#</th>
+                        <th class="col-1">Cliente</th>
+                        <th class="col-2">Info Equipo</th>
+                        <th class="col-3">Estado</th>
+                        <th class="col-4">Fecha</th>
+                        <th>Acciones</th>
+                    </tr></thead>
                     <tbody>${rows}</tbody>
                 </table>`;
+            
+            applyColumnVisibility();
         } catch(e) {
             container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar tickets.</p></div>`;
         }
     }
+
+    function resetPreviewMode() {
+        const previewSelect = document.getElementById('preview-as-role');
+        if (previewSelect) previewSelect.value = 'Admin';
+        loadTickets();
+    }
+
+    function viewFullTicket(t) {
+        const content = document.getElementById('full-ticket-content');
+        const fields = [
+            { label: 'ID Ticket', value: `#${t.id}` },
+            { label: 'Fecha de Creación', value: t.created_at ? new Date(t.created_at).toLocaleString('es-AR') : '—' },
+            { label: 'Estado Actual', value: t.estado || 'Pendiente' },
+            { label: 'Nombre del Cliente', value: t.nombre },
+            { label: 'Email', value: t.email },
+            { label: 'Teléfono', value: t.telefono || '—' },
+            { label: 'Establecimiento', value: t.establecimiento || 'Particular' },
+            { label: 'Dirección', value: t.direccion || '—' },
+            { label: 'Marca del Equipo', value: t.marca || '—' },
+            { label: 'Modelo del Equipo', value: t.modelo || '—' },
+            { label: 'Número de Serie', value: t.n_serie || '—' },
+            { label: 'Consulta / Problema', value: t.consulta || 'Sin descripción' }
+        ];
+
+        content.innerHTML = fields.map(f => `
+            <div class="full-request-item">
+                <strong>${f.label}</strong>
+                <p>${escapeHtml(f.value)}</p>
+            </div>
+        `).join('');
+
+        document.getElementById('modal-view-full').classList.add('open');
+    }
+
+    // Column visibility logic
+    document.getElementById('btn-col-selector').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('col-selector-menu').classList.toggle('show');
+    });
+
+    document.querySelectorAll('#col-selector-menu input').forEach(input => {
+        input.addEventListener('change', () => {
+            applyColumnVisibility();
+        });
+    });
+
+    function applyColumnVisibility() {
+        document.querySelectorAll('#col-selector-menu input').forEach(input => {
+            const colIndex = input.getAttribute('data-col');
+            const visible = input.checked;
+            const cells = document.querySelectorAll(`.col-${colIndex}`);
+            cells.forEach(c => {
+                if (visible) c.classList.remove('hidden-col');
+                else c.classList.add('hidden-col');
+            });
+        });
+    }
+
+    document.addEventListener('click', () => {
+        document.getElementById('col-selector-menu').classList.remove('show');
+    });
+    document.getElementById('col-selector-menu').addEventListener('click', e => e.stopPropagation());
 
     // Ticket search/filter listeners
     document.getElementById('btn-search-tickets').addEventListener('click', loadTickets);
@@ -1496,6 +1715,38 @@
         if (str === null || str === undefined) return '';
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
+
+    // ============================================================
+    // FORCE PASSWORD CHANGE
+    // ============================================================
+    if (userData?.must_change_password) {
+        document.getElementById('modal-force-password').classList.add('open');
+    }
+
+    document.getElementById('force-password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPwd = document.getElementById('force-pwd').value;
+        const confirmPwd = document.getElementById('force-pwd-confirm').value;
+        if (newPwd !== confirmPwd) { showAlert('alert-modal-force', 'danger', 'Las contraseñas no coinciden.'); return; }
+        
+        setBtn('btn-save-force-pwd', true, 'Actualizando...');
+        try {
+            const resp = await fetch(`${API_BASE}/users/${USER_ID}/reset-password`, {
+                method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ newPassword: newPwd })
+            });
+            if (resp.ok) {
+                // Update local storage
+                userData.must_change_password = false;
+                localStorage.setItem('dap_user', JSON.stringify(userData));
+                document.getElementById('modal-force-password').classList.remove('open');
+                showAlert('alert-perfil', 'success', 'Contraseña actualizada correctamente.');
+                loadOverview();
+            } else {
+                const data = await resp.json();
+                showAlert('alert-modal-force', 'danger', data.message || 'Error al actualizar.');
+            }
+        } catch(e) { showAlert('alert-modal-force', 'danger', 'Error de conexión.'); }
+    });
 
     // ============================================================
     // INIT
