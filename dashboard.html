@@ -1232,17 +1232,17 @@
                     <td>
                         <div class="actions-row">
                             ${u.id !== USER_ID ? `
-                            <button class="btn btn-sm btn-primary" onclick="openRoleModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')}, ${JSON.stringify(u.role).replace(/"/g, '&quot;')})">
+                            <button class="btn btn-sm btn-primary" onclick="openRoleModal('${u.id}', ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')}, ${JSON.stringify(u.role).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-user-tag"></i> Rol
                             </button>
                             ${u.role !== 'Administrador' ? `
-                            <button class="btn btn-sm btn-success" onclick="openRulesModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')}, ${JSON.stringify(u.columnas_visibles || '0,1,2,3,4').replace(/"/g, '&quot;')})">
+                            <button class="btn btn-sm btn-success" onclick="openRulesModal('${u.id}', ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')}, ${JSON.stringify(u.columnas_visibles || '0,1,2,3,4').replace(/"/g, '&quot;')})">
                                 <i class="fas fa-filter"></i> Reglas
                             </button>` : ''}
-                            <button class="btn btn-sm btn-warning" onclick="openResetModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')})">
+                            <button class="btn btn-sm btn-warning" onclick="openResetModal('${u.id}', ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-key"></i> Reset
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')})">
+                            <button class="btn btn-sm btn-danger" onclick="openDeleteModal('${u.id}', ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-trash"></i>
                             </button>` : `<span style="font-size:0.8rem;color:var(--text-muted);padding:6px 8px;">(Tú)</span>`}
                         </div>
@@ -1506,14 +1506,14 @@
                                 <i class="fas fa-eye"></i>
                             </button>
                             ${canChangeStatus ? `
-                            <button class="btn btn-sm btn-primary" onclick="openTicketStatusModal(${t.id}, '${escapeHtml(t.estado || 'Pendiente')}')" title="Cambiar Estado">
+                            <button class="btn btn-sm btn-primary" onclick="openTicketStatusModal('${t.id}', '${escapeHtml(t.estado || 'Pendiente')}')" title="Cambiar Estado">
                                 <i class="fas fa-exchange-alt"></i>
                             </button>` : ''}
                             ${isAdmin ? `
                             <button class="btn btn-sm btn-warning" onclick="openTicketModal(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteTicketAdmin(${t.id})" title="Eliminar">
+                            <button class="btn btn-sm btn-danger" onclick="deleteTicketAdmin('${t.id}')" title="Eliminar">
                                 <i class="fas fa-trash"></i>
                             </button>` : ''}
                         </div>
