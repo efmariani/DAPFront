@@ -174,6 +174,15 @@ h4,
     cursor: pointer;
 }
 
+.mobile-only {
+    display: none;
+}
+
+.nav-solicitar-btn {
+    margin-left: auto;
+    margin-right: 20px;
+}
+
 /* Hero Section */
 .hero {
     height: 85vh;
@@ -964,6 +973,24 @@ footer {
 
     .menu-toggle {
         display: block;
+    }
+
+    .nav-solicitar-btn {
+        margin-right: 15px;
+        padding: 8px 15px;
+        font-size: 0.8rem;
+    }
+
+    .mobile-only {
+        display: block;
+    }
+
+    .nav-links li.mobile-only a {
+        color: var(--primary);
+        font-weight: 700;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+        margin-top: 5px;
     }
 
     .hero h1 {

@@ -13,62 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loginTriggerEl = document.getElementById('login-trigger');
     const signupTriggerEl = document.getElementById('signup-trigger');
+    const loginMobileTrigger = document.getElementById('login-trigger-mobile');
+    const signupMobileTrigger = document.getElementById('signup-trigger-mobile');
     const navCta = document.querySelector('.nav-cta');
+    const mobileOnlyLinks = document.querySelectorAll('.mobile-only');
 
-    if (token && userData && navCta) {
-        // User is logged in: replace auth buttons with dashboard link + logout
-        const nombre = userData.nombre || userData.email || 'Usuario';
-        navCta.innerHTML = `
-            <a href="dashboard.html" class="btn btn-primary" id="btn-dashboard">
-                <i class="fas fa-th-large"></i> Mi Panel
-            </a>
-            <button class="btn btn-secondary" id="btn-logout-nav" style="cursor:pointer;">
-                <i class="fas fa-sign-out-alt"></i> Salir
-            </button>`;
-        document.getElementById('btn-logout-nav').addEventListener('click', () => {
-            localStorage.removeItem('dap_token');
-            localStorage.removeItem('dap_user');
-            window.location.reload();
-        });
-    }
-
-    // ============================================================
-    // 1. Mobile Menu Toggle
-    // ============================================================
     const mobileMenu = document.getElementById('mobile-menu');
     const navLinks = document.querySelector('.nav-links');
-
-    if (mobileMenu) {
-        mobileMenu.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = mobileMenu.querySelector('i');
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
-        });
-    }
-
-    // ============================================================
-    // 2. Navbar Scroll Effect
-    // ============================================================
     const navbar = document.querySelector('.navbar');
-    if (navbar) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.style.padding = '8px 0';
-                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-            } else {
-                navbar.style.padding = '15px 0';
-                navbar.style.background = 'rgba(255, 255, 255, 0.85)';
-            }
-        });
-    }
-
-    // ============================================================
-    // 3. Auth Modal Logic
-    // ============================================================
     const authModal = document.getElementById('auth-modal');
-    const loginTrigger = document.getElementById('login-trigger');
-    const signupTrigger = document.getElementById('signup-trigger');
     const closeModal = document.querySelector('.close-modal');
     const loginContainer = document.getElementById('login-container');
     const signupContainer = document.getElementById('signup-container');
@@ -95,8 +48,96 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = 'auto';
     };
 
-    if (loginTrigger) loginTrigger.addEventListener('click', (e) => { e.preventDefault(); openModal('login'); });
-    if (signupTrigger) signupTrigger.addEventListener('click', (e) => { e.preventDefault(); openModal('signup'); });
+    if (token && userData) {
+        // User is logged in: replace auth buttons in desktop
+        const nombre = userData.nombre || userData.email || 'Usuario';
+        if (navCta) {
+            navCta.innerHTML = `
+                <a href="dashboard.html" class="btn btn-primary" id="btn-dashboard">
+                    <i class="fas fa-th-large"></i> Mi Panel
+                </a>
+                <button class="btn btn-secondary" id="btn-logout-nav" style="cursor:pointer;">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>`;
+        }
+
+        // Also update mobile links
+        mobileOnlyLinks.forEach(li => {
+            if (li.contains(loginMobileTrigger)) {
+                li.innerHTML = `<a href="dashboard.html" id="dashboard-mobile"><i class="fas fa-th-large"></i> Mi Panel</a>`;
+            } else if (li.contains(signupMobileTrigger)) {
+                li.innerHTML = `<a href="#" id="logout-mobile"><i class="fas fa-sign-out-alt"></i> Salir</a>`;
+            }
+        });
+
+        // Add logout listeners
+        const logoutBtn = document.getElementById('btn-logout-nav');
+        const logoutMobile = document.getElementById('logout-mobile');
+        
+        const handleLogout = () => {
+            localStorage.removeItem('dap_token');
+            localStorage.removeItem('dap_user');
+            window.location.reload();
+        };
+
+        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+        if (logoutMobile) logoutMobile.addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
+    }
+
+    // Auth triggers
+    const addAuthListeners = (el, mode) => {
+        if (el) el.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            openModal(mode);
+            // Close mobile menu if open
+            if (navLinks.classList.contains('active')) {
+                mobileMenu.click();
+            }
+        });
+    };
+
+    addAuthListeners(loginTriggerEl, 'login');
+    addAuthListeners(signupTriggerEl, 'signup');
+    addAuthListeners(loginMobileTrigger, 'login');
+    addAuthListeners(signupMobileTrigger, 'signup');
+
+    // ============================================================
+    // 1. Mobile Menu Toggle
+    // ============================================================
+
+
+    if (mobileMenu) {
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = mobileMenu.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+    }
+
+    // ============================================================
+    // 2. Navbar Scroll Effect
+    // ============================================================
+
+    if (navbar) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.style.padding = '8px 0';
+                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                navbar.style.padding = '15px 0';
+                navbar.style.background = 'rgba(255, 255, 255, 0.85)';
+            }
+        });
+    }
+
+    // ============================================================
+    // 3. Auth Modal Logic
+    // ============================================================
+
+
+
+
     if (closeModal) closeModal.addEventListener('click', closeAuthModal);
     if (goToSignup) goToSignup.addEventListener('click', (e) => { e.preventDefault(); openModal('signup'); });
     if (goToLogin) goToLogin.addEventListener('click', (e) => { e.preventDefault(); openModal('login'); });
