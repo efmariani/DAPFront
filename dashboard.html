@@ -847,11 +847,12 @@
     <!-- ===== MODAL: Gestión de Reglas para Admin ===== -->
     <div class="modal-overlay" id="modal-rules">
         <div class="modal-box" style="max-width:500px">
-            <h3><i class="fas fa-filter" style="color:var(--success);margin-right:8px"></i>Reglas de Filtrado</h3>
+            <h3><i class="fas fa-filter" style="color:var(--success);margin-right:8px"></i>Reglas de Filtrado y Columnas</h3>
             <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:20px;">Usuario: <strong id="modal-rules-username"></strong></p>
             
+            <!-- Tickets Rules -->
             <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-bottom:20px;">
-                <h4 style="font-size:0.85rem; margin-bottom:12px;">Nueva Regla</h4>
+                <h4 style="font-size:0.85rem; margin-bottom:12px;">Filtros de Tickets</h4>
                 <div style="display:flex; gap:8px;">
                     <select id="modal-rule-field" style="flex:1">
                         <option value="n_serie">N° Serie</option>
@@ -862,8 +863,33 @@
                 </div>
             </div>
 
-            <div id="rules-list-container" style="max-height:200px; overflow-y:auto; border:1px solid #eee; border-radius:8px; padding:10px;">
+            <div id="rules-list-container" style="max-height:150px; overflow-y:auto; border:1px solid #eee; border-radius:8px; padding:10px; margin-bottom:20px;">
                 <div class="empty-state" style="padding:20px;"><p>No hay reglas aplicadas.</p></div>
+            </div>
+
+            <!-- Column Visibility Rules -->
+            <div style="background:#f8fafc; padding:16px; border-radius:12px;">
+                <h4 style="font-size:0.85rem; margin-bottom:12px;">Columnas que el usuario puede ver</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" id="user-cols-config">
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" data-col="0"> #Ticket
+                    </label>
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" data-col="1"> Cliente
+                    </label>
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" data-col="2"> Info Equipo
+                    </label>
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" data-col="3"> Estado
+                    </label>
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" data-col="4"> Fecha
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btn-save-user-rules" style="width:100%; margin-top:12px; justify-content:center;">
+                    <i class="fas fa-save" style="margin-right:6px"></i> Guardar Filtros y Columnas
+                </button>
             </div>
             
             <div id="alert-modal-rules" class="alert"></div>
@@ -1193,17 +1219,17 @@
                     <td>
                         <div class="actions-row">
                             ${u.id !== USER_ID ? `
-                            <button class="btn btn-sm btn-primary" onclick="openRoleModal(${u.id}, '${escapeHtml(u.nombre)}', '${escapeHtml(u.role)}')">
+                            <button class="btn btn-sm btn-primary" onclick="openRoleModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')}, ${JSON.stringify(u.role).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-user-tag"></i> Rol
                             </button>
                             ${u.role !== 'Administrador' ? `
-                            <button class="btn btn-sm btn-success" onclick="openRulesModal(${u.id}, '${escapeHtml(u.nombre)}')">
+                            <button class="btn btn-sm btn-success" onclick="openRulesModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')}, ${JSON.stringify(u.columnas_visibles || '0,1,2,3,4').replace(/"/g, '&quot;')})">
                                 <i class="fas fa-filter"></i> Reglas
                             </button>` : ''}
-                            <button class="btn btn-sm btn-warning" onclick="openResetModal(${u.id}, '${escapeHtml(u.nombre)}')">
+                            <button class="btn btn-sm btn-warning" onclick="openResetModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-key"></i> Reset
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${u.id}, '${escapeHtml(u.nombre)}')">
+                            <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${u.id}, ${JSON.stringify(u.nombre).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-trash"></i>
                             </button>` : `<span style="font-size:0.8rem;color:var(--text-muted);padding:6px 8px;">(Tú)</span>`}
                         </div>
@@ -1302,12 +1328,19 @@
     // ============================================================
     // RULES (Admin only)
     // ============================================================
-    async function openRulesModal(userId, name) {
+    async function openRulesModal(userId, name, visibleCols) {
         selectedUserId = userId;
         document.getElementById('modal-rules-username').textContent = name;
         document.getElementById('modal-rule-value').value = '';
         document.getElementById('alert-modal-rules').classList.remove('show');
         document.getElementById('modal-rules').classList.add('open');
+        
+        // Setup checkboxes
+        const colList = visibleCols.split(',');
+        document.querySelectorAll('#user-cols-config input').forEach(input => {
+            input.checked = colList.includes(input.getAttribute('data-col'));
+        });
+
         loadRules(userId);
     }
 
@@ -1358,6 +1391,26 @@
     }
 
     document.getElementById('btn-close-rules').addEventListener('click', () => document.getElementById('modal-rules').classList.remove('open'));
+
+    document.getElementById('btn-save-user-rules').addEventListener('click', async () => {
+        const checkedCols = [];
+        document.querySelectorAll('#user-cols-config input:checked').forEach(i => checkedCols.push(i.getAttribute('data-col')));
+        const columns = checkedCols.join(',');
+
+        setBtn('btn-save-user-rules', true, 'Guardando...');
+        try {
+            const resp = await fetch(`${API_BASE}/users/${selectedUserId}/columns`, {
+                method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ columns })
+            });
+            if (resp.ok) {
+                showAlert('alert-modal-rules', 'success', 'Configuración guardada.');
+                loadUsers(); // Refresh to get updated columns string
+            } else {
+                showAlert('alert-modal-rules', 'danger', 'Error al guardar columnas.');
+            }
+        } catch(e) { showAlert('alert-modal-rules', 'danger', 'Error de conexión.'); }
+        setBtn('btn-save-user-rules', false, '<i class="fas fa-save"></i> Guardar Filtros y Columnas');
+    });
 
     // ============================================================
     // TICKETS
@@ -1710,10 +1763,14 @@
         return true;
     }
 
-    // Escape HTML to prevent XSS
+    // Escape HTML to prevent XSS (including single quotes)
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(str).replace(/&/g,'&amp;')
+                         .replace(/</g,'&lt;')
+                         .replace(/>/g,'&gt;')
+                         .replace(/"/g,'&quot;')
+                         .replace(/'/g,'&#39;');
     }
 
     // ============================================================
@@ -1748,10 +1805,21 @@
         } catch(e) { showAlert('alert-modal-force', 'danger', 'Error de conexión.'); }
     });
 
+    // Initialize column visibility from user profile
+    function initColumnVisibility() {
+        const visibleCols = userData.columnas_visibles || '0,1,2,3,4';
+        const colList = visibleCols.split(',');
+        document.querySelectorAll('#col-selector-menu input').forEach(input => {
+            input.checked = colList.includes(input.getAttribute('data-col'));
+        });
+        applyColumnVisibility();
+    }
+
     // ============================================================
     // INIT
     // ============================================================
     initSidebar();
+    initColumnVisibility();
     loadOverview();
     </script>
 
