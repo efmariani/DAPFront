@@ -1206,7 +1206,7 @@
             const users = await resp.json();
             
             if (!resp.ok) {
-                container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${users.message || 'No se pudieron cargar los usuarios'}</p></div>`;
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${users.message || 'No se pudieron cargar los usuarios'}${users.error ? `<br><small style="color:red">${users.error}</small>` : ''}</p></div>`;
                 document.getElementById('users-count').textContent = 'Error';
                 return;
             }
